@@ -14,6 +14,8 @@ INPUT_FILES=$(shell find src -type f -iname '*.haml')
 RENDER_FILES=$(INPUT_FILES:src/%.haml=$(OUTPUT_DIR)/%.html)
 RESOURCE_FILES_OUTPUT=$(RESOURCE_FILES:src/%=$(OUTPUT_DIR)/%)
 
+DIST_ARC=dist.tar.xz
+
 .PHONY: all clean outputdir dist 
 
 all: $(RENDER_FILES) $(RESOURCE_FILES_OUTPUT)
@@ -44,7 +46,8 @@ $(OUTPUT_DIR)/%: src/%
 	cp $(@:$(OUTPUT_DIR)/%=src/%) $@
 
 clean:
-	$(RM) -r -f $(OUTPUT_DIR)
+	$(RM) -r $(OUTPUT_DIR)
+	$(RM) $(DIST_ARC)
 
 dist: all 
-	tar cfJ dist.tar.xz $(shell find $(OUTPUT_DIR) -depth -type f)
+	tar cfJ $(DIST_ARC) $(shell find $(OUTPUT_DIR) -depth -type f)
