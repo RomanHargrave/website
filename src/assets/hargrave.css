@@ -1,0 +1,193 @@
+@font-face {
+    font-family: 'M+ 1mn';
+    src: url('./font/mplus-1mn-regular.ttf')                    format('truetype')
+         url('./font/mplus-1mn-regular.woff2')                  format('woff2')
+         url('./font/mplus-1mn-regular.woff')                   format('woff')
+         url('./font/mplus-1mn-regular.eot')                    format('eot')
+         url('./font/mplus-1mn-regular.svg#mplus-1mn-regular')  format('svg');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'M+ 2c';
+    src: url('./font/mplus-2c-regular.ttf')                     format('truetype')
+         url('./font/mplus-2c-regular.woff2')                   format('woff2')
+         url('./font/mplus-2c-regular.woff')                    format('woff')
+         url('./font/mplus-2c-regular.eot')                     format('eot')
+         url('./font/mplus-2c-regular.svg#mplus-2c-regular')    format('svg');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'M+ 2m';
+    src: url('./font/mplus-2m-medium.ttf')                      format('truetype')
+         url('./font/mplus-2m-medium.woff2')                    format('woff2')
+         url('./font/mplus-2m-medium.woff')                     format('woff')
+         url('./font/mplus-2m-medium.eot')                      format('eot')
+         url('./font/mplus-2m-medium.svg#mplus-2m-medium')      format('svg');
+    font-weight: bold;
+}
+
+@media not print {
+    body {
+        background-color: #f0f0f0;
+    }
+
+    a {
+        border-bottom: thin dashed #404040;
+    }
+
+    a:hover {
+        text-shadow: 2px 2px 20px #371450;
+    }
+
+    #content {
+        max-width: 960px;
+        width: 960px;
+        margin: 0 auto;
+    }
+}
+
+@media only print {
+    .no-print {
+        display: none;
+    }
+
+    p, span, pre {
+        break-inside:       avoid;
+        page-break-inside:  avoid;
+    }
+}
+
+.text-centered {
+    text-align: center;
+}
+
+.h-centered {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* M+ 2c is the standard font */ 
+body {
+    text-rendering: optimizeLegibility;
+    font-family: 'M+ 2c';
+    font-weight: normal;     
+}
+
+pre.highlight {
+    padding: 5px;
+}
+
+/* M+ 2m is the heading font */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'M+ 2m', Arial, sans-serif;
+    font-weight: bold;
+}
+
+/* M+ 1mn is the code font */ 
+pre, code, .highlight {
+    font-family: 'M+ 1mn', 'Source Code Pro', mono;
+    font-weight: normal;
+}
+
+a {
+    text-decoration: none;
+    color: #404040;
+}
+
+a:visited {
+    color: #41233A;
+}
+
+ul.paragraph-list {
+    list-style-type: none;
+    margin-bottom: 10px;
+    display: block;
+}
+
+ul.paragraph-list li {
+    list-style-type: none;
+    margin-bottom: 5px;
+}
+
+/*
+ * Inline lists 
+ */
+
+ul.inline-list {
+    list-style-type: none;
+    margin-bottom: 15px;
+    padding: 0;
+    display: inline-block;
+}
+
+ul.inline-list > li {
+    list-style-type: none;
+    clear: none;
+    margin: 0 10px 0 0;
+    float: left;  
+    padding: 0;
+}
+
+/* Section subscript styles */
+
+h1 small, 
+h2 small, 
+h3 small, 
+h4 small,
+h5 small,
+h6 small {
+    font-size: small;
+    font-style: italic;
+}
+
+/* Generated Code (Modular scale maths) */
+
+p {
+    margin-bottom: 1.3em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 1.414em 0 0.5em;
+}
+
+h1, h2 {
+    line-height: 1;
+}
+
+h3, h4, h5, h6 {
+    line-height: .9
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 2.822em;
+}
+
+h2 {
+    font-size: 2.479em;
+}
+
+h3 {
+    font-size: 2.178em;
+}
+
+h4 {
+    font-size: 1.913em;
+}
+
+h5 {
+    font-size: 1.68em;
+}
+
+h6 {
+    font-size: 1.476em;
+}
+
+small, .font_small {
+    font-size: 0.707em;
+}
+
+/* End Generated Code */

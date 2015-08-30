@@ -1,0 +1,178 @@
+!!!
+%html
+  %head 
+    %title Roman Hargrave - AMI Aptios Flashing and Linux 
+    %link(rel='stylesheet' href='../assets/article.css')
+    %link(rel='stylesheet' href='../assets/hargrave.css')
+    %link(rel='stylesheet' href='../assets/highlight.css')
+  %body
+    #content 
+      %ul.inline-list 
+        %li
+          %a(href='../') Back
+
+      :redcarpet
+        # AMI Firmware Modding 
+
+        This august, I decided to have a go with firmware modding on my laptop,
+        mostly in another (failed) attempt to make muxless graphics work with
+        Linux. This led me down some interesting paths involving firmware modding.
+
+        ## Modding the Firmware
+
+        UEFI firmware modding (in so far as AMI's Aptios series of firmwares) is
+        really quite kosher compared to what the name might suggest. Rather than
+        digging around with a hex editor and an x86 disassembler, the majority of
+        your time is spent with AMI's regularly leaked vendor-specific tool for
+        modifying menu options and values _in place_ (that is to say that you
+        literally open the firmware package in this thing and do what you will).
+        Granted, if your manufacturer has taken the time to hide certain menus in
+        a certain fashion, you will have to spend all of five minutes in a hex
+        editor. The aforementioned tool, AMIBCP is windows-only, but will run just
+        fine in a Windows XP thru 8.1 VM (I used a Windows 7 VM). Although AMI
+        publicly praises the tool as if it were an improvement upon sliced bread,
+        it is of course unavailable for public download. That being said, it is no
+        issue to get a copy that will work, as it appears that updates regularly
+        make their way out of AMI or Manufacturers. Combined with the fact that
+        there is absolutely no license management or anything of the like
+        whatsoever, running BCP is a real breeze.
+
+        Interestingly enough, BCP isn't some new tool for the UEFI firmware wave.
+        Older versions are floating around that are meant for modifying BIOS
+        firmware manufactured by AMI. If you intend to modify a UEFI firmware
+        image, you will want _at least_ version five. AMI boast screenshots of
+        a version seven, however not even six is available publicly, and it
+        appears that no features or improvements have been made.
+
+        ## Accessing the firmware image 
+
+        This is simple enough in windows, however I do not use windows, nor am
+        I remotely interested in attempting to modify my firmware via a VM.
+
+        Fortunately, AMI advertise that they make a tool, `AFULNX`, for reading
+        and writing firmware ROM's on Linux. Of course, this is available only to
+        hardware manufacturers, and they don't even have a track record of giving
+        a flying fuck about two-year-old hardware, let alone Linux (the
+        installation of which apparently "voided my warranty"). Once again,
+        however, mysterious persons have come to the rescue and released `AFULNX`,
+        the Linux ROM tool.
+
+        Now, you should probably be aware by now that you can't _just ship_
+        a _binary_ kernel driver module, which would be needed to modify the
+        contents of the firmware ROM. This is both due to the potential for API
+        changes, and also (I believe, but don't quote me!) due to license
+        restrictions regarding the inclusion of Linux kernel API headers. In this
+        respect, AMI had to get a little crafty, so as to make obtaining the
+        source nearly impossible whilst also distributing source code.
+
+        Now, I'm not quite sure how much cocaine was done during the development
+        of `AFULNX`, or if even such a humble stimulant as cocaine can lead to
+        such bizarre ideas as follows, but rest assured that sobriety in the AMI
+        software department was, on average, less than that of a Tour de France
+        team before the doping scandal was uncovered, or more aptly put, less than
+        that of a Dell marketing department meeting in the early-to-mid 1990's. 
+
+        Upon running `AFULNX`, the tool will create a directory full of source
+        code for a kernel module, _including a Makefile_. It will _immediately_,
+        procede to fail to compile due to lack of a _very_ important kernel
+        header: `module.h` having not been included in the, erm, module. Now, in
+        order to prevent you, the humble end user, from obtaining their open
+        source kernel ~embarassment~ module, some genius placed a linker
+        _pre-exit_ hook in the tool that will _delete_ the source directory for
+        the module. If I should remember correctly, the tool offers a way to
+        supposedly extract the source code for the module; however, it will only
+        output _one half_ of the source files that are output when the tool is
+        normally run. 
+
+        In my attempt to obtain the source code, the first thing I (foolishly)
+        tried was running `binwalk` on the binary, under the assumption that they
+        had done something sensible and embedded some manner of archive. Boy was
+        I wrong. As only drugs can influence one to do, some _genius_ embedded
+        some 821 lines of _unformatted_ C and GNU Make code _in to_ the binary.
+        Due to the manner in which they uterrly fucked this up, you cannot simply
+        get it out using `strings`. The only reliable way I have found to get it
+        is by running the application and _suspending it_ (DO NOT KILL IT!) before
+        it exits, but not immediately after is starts. This will prevent the exit
+        hook from running. 
+
+        After stopping `AFULNX`, I was able to _move_ the source directory
+        elsewhere (to prevent the tool from getting rid of it). Now that I had
+        access to the source code and Makefile, I was able run `astyle` on it, and
+        then make it work. The fix was hilariously simple: 
+
+        ```diff
+        --- afulnx64/source2/amifldrv.c 2015-08-30 11:08:04.381823553 -0500
+        +++ amifldrv.c  2015-08-30 10:34:07.983306241 -0500
+        @@ -1,6 +1,7 @@
+         #include <linux/mm.h>
+         #include <asm/io.h>
+         #include <linux/interrupt.h>
+        +#include <linux/module.h>
+         #include "amifldrv.h"
+         #include "amiwrap.h"
+         int amifldrv_ioctl(void);
+         ``` 
+
+        Compiling was simple enough, just run `make` and you're good to go. You
+        may want to load the kernel module your self. Make sure that the module
+        file is in the same directory as `afulnx`, or else the infernal thing will
+        try to build it again.
+
+        After this point, I was able to make `afulnx` work.
+
+        ## Running afulnx 
+
+        In order for `afulnx` to run, the source code that came out of the version you downloaded
+        must have been used to generate the accompnying kernel module. I have found out the hard way
+        that using mismatched versions _can_ and _will_ cause a kernel panic, courtesy of likely _shitty_
+        programming practices on the part of AMI's engineering department. 
+
+        You will need to check out the source code in to a directory at the same level as the `afulnx` binary.
+        Enter that directory and run `make`.
+
+        If everything goes well, you should get output like this:
+
+        ```plaintext
+        make -C /lib/modules/4.2.0-rc7/build SUBDIRS=/home/roman/Projects/third-party/afulnx modules
+        make[1]: Entering directory '/usr/src/linux-headers-4.2.0'
+          CC [M]  /home/roman/Projects/third-party/afulnx/amifldrv.o
+          CC [M]  /home/roman/Projects/third-party/afulnx/amiwrap.o
+          LD [M]  /home/roman/Projects/third-party/afulnx/amifldrv_mod.o
+          Building modules, stage 2.
+          MODPOST 1 modules
+          CC      /home/roman/Projects/third-party/afulnx/amifldrv_mod.mod.o
+          LD [M]  /home/roman/Projects/third-party/afulnx/amifldrv_mod.ko
+        make[1]: Leaving directory '/usr/src/linux-headers-4.2.0'
+        rm -f amifldrv.o_shipped
+        mv amifldrv.o amifldrv.o_shipped
+        rm -f amifldrv_mod.o
+        mv amifldrv_mod.ko ../amifldrv_mod
+        ```
+
+        This will have created a file, `amifldrv_mod` in the same directory as `afulnx`.
+        You will need to copy this file to `amifldrv_mod.o` in the same directory, otherwise
+        `afulnx` will not run.
+
+        You will want to do this with a copy of `v5`. At least `v5.05.04`, which this was tested on. 
+
+        ### Testing afulnx 
+
+        A pretty reliable way to test afulnx is to try and obtain a firmware dump:
+
+        ```fish
+        ./afulnx64 firmware.bin /O 
+        ```
+
+        You machine should become pretty unusable for a few seconds and then you should have a firmware image.
+
+        ## Getting the amifldrv source code
+
+        As a matter of convenience, I have put the corrected amifldrv source code on 
+        github. It may be downloaded from [my amifldrv repo](https://github.com/romanhargrave/amifldrv)
+
+        Additionally, I have included source code for the modules used by `v4.24` and `v4.26`. I advise that you
+        not use these versions, although I have added the correct `#include` statements to those also, should you
+        need to use those versions of `afulnx`.
+
+        Note that I have processed these source files with `astyle` so that you do not incur a stroke from reading them.
+

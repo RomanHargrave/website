@@ -1,0 +1,33 @@
+!!!
+%html
+  %head
+    %title Roman Hargrave
+    %link(rel='stylesheet' type='text/css' href='assets/hargrave.css')
+    %meta(charset='UTF-8')
+  %body
+    #content
+      -# Header
+      .text-centered.h-centered 
+        %h1 Roman Hargrave
+        %ul.inline-list.no-print
+          %li 
+            %i on... 
+          %li 
+            %a(href='https://www.linkedin.com/in/hargraver') LinkedIn
+          %li
+            %a(href='https://github.com/RomanHargrave') GitHub
+          %li
+            %a(href='https://bitbucket.org/rhargrave') BitBucket
+          %li 
+            %a(href='https://deepslackerjazz.deviantart.com/') DeviantArt
+
+      -# Actual Content
+      %section#articles
+        %h2 Articles
+        %ul.paragraph-list 
+          %li 
+            %h3
+              %a(href='articles/afulnx.html') UEFI Firmware Flashing on Linux
+            %p 
+              A writeup of my dealings with AMI's firmware tools for Linux. Includes a link to
+              working source code for the ROM Kernel Module.
