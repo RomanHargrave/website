@@ -58,7 +58,7 @@
 
         All of this ultimately led to `scrub.c`, a simple program that is safe in its nature and quite fast.
         `scrub.c` is around 585 lines long as of writing, a lot of it due to formatting (though nobody cares
-        aboud line count). It allows for both file _names_ and file _extensions_ to be specified. These file 
+        about line count). It allows for both file _names_ and file _extensions_ to be specified. These file 
         extensions and names will be removed if they exist in a tree. If a directory is empty once processed,
         it will be removed. Directories that were already empty will also be removed. An option will likely be
         added to preserve directory structure and remove only files.
@@ -97,6 +97,7 @@
 
         The following options are accepted:
 
+        ```plaintext 
         - -cext     --clobber-extension=ext 
 
           This will remove all files with the given extension 
@@ -118,10 +119,13 @@
         - --verbose
 
           Output every action that scrub takes 
+        ```
 
         An example invocation that removes all `nfo` files and files named `cover.jpg` would look like this:
 
-          scrub -cnfo -Ccover.jpg folder1/ folder2/
+        ```shell 
+        scrub -cnfo -Ccover.jpg folder1/ folder2/
+        ```
 
         If `scrub` was able to remove everything up to, and including, those files and directories passed as arguments, 
         it will return `0`. Otherwise, and appropriate status is returned.
