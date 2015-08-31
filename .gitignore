@@ -1,0 +1,9 @@
+deploy/**
+!deploy/deploy.tar.enc
+
+**.rbc
+**.lock
+**.swp
+public/**
+
+dist.tar.xz

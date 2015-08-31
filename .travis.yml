@@ -1,0 +1,12 @@
+before_install:
+    - openssl aes-256-cbc -K $encrypted_063cb9d28ed8_key -iv $encrypted_063cb9d28ed8_iv -in deploy/deploy.tar.enc -out deploy/deploy.tar -d
+    - tar -C deploy xf deploy/deploy.tar 
+    - rm deploy/deploy.tar 
+jdk:
+    - oraclejdk8
+rvm:
+    - rbx 
+script: 
+    - bundle install
+    - make clean dist 
+    - bash deploy/deploy.sh 
