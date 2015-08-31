@@ -1,0 +1,142 @@
+!!!
+%html
+  %head
+    %title Roman Hargrave - Directory Scrubber
+    %link(rel='stylesheet' type='text/css' href='../assets/hargrave.css')
+    %link(rel='stylesheet' type='text/css' href='../assets/article.css')
+    %link(rel='stylesheet' type='text/css' href='../assets/highlight.css')
+  %body
+    #content 
+      %ul.inline-list
+        %li
+          %a(href='../index.html') Back
+      %h1 Directory Scrubber 
+      :redcarpet
+        When I got in to organizing my music collection, I often found myself dealing with a couple 
+        pernicious directory structures, one of them being large trees of empty directories.
+
+        `rmdir` does not have built-in support for recursive deletion, and `rm` does not offer a means
+        to remove _only_ directories. 
+
+        I also ran in to trees of directories with sidecar files or other unwanted files. A simple 
+        recursive RM could get rid of these, but one would have to make sure that there was nothing
+        in the structure that was actually useful. 
+
+        Initially, I wrote a fish script, known as `rmempty` that was a somewhat painfully slow 
+        recursive shell script involving find and some odd pipe abuse. This later mutated in to a simpler
+        fish function, granted that it had less functionality.
+
+        ```fish
+        function rmempty --description 'Trim empty trees'
+          # Create a list of targets with child directories listed before their parents
+            set __rme_targets       (find $argv -depth -type d | tail -n +2)
+            set __rme_total_success yes
+
+            for target in $__rme_targets
+                # If the target is a nukable target, recursively delete it
+                if contains -- (basename "$target") $rm_empty_nuke
+                    rm -rv "$target"
+                else # If it is an average directory, run rmdir on it
+                    if not rmdir "$target" 
+                        set __rme_total_success no
+                    end
+                end
+            end
+
+            if [ $__rme_total_success != yes ]
+                echo rmempty: unable to remove all children
+            end
+        end
+        ```
+
+        This went relatively unneeded for a while, until I needed to clean up a bunch of files with specific
+        extensions in a given tree. Due to the number of files, it would be impractical to use a recusive glob
+        (`rm **.extension`) to pass them all as arguments to rm, as it would both take a moment for the shell to
+        collect the list of files, and then the kernel would need to support passing _that_ many arguments to 
+        a command. Alternatively, some manner of recursive script could be written that invokes rm on each file,
+        but I would rather run this all in a single process.
+
+        All of this ultimately led to `scrub.c`, a simple program that is safe in its nature and quite fast.
+        `scrub.c` is around 585 lines long as of writing, a lot of it due to formatting (though nobody cares
+        aboud line count). It allows for both file _names_ and file _extensions_ to be specified. These file 
+        extensions and names will be removed if they exist in a tree. If a directory is empty once processed,
+        it will be removed. Directories that were already empty will also be removed. An option will likely be
+        added to preserve directory structure and remove only files.
+
+        The manner in which it operates is recursive, and therefore quite simple:
+
+        ```plaintext
+        function process_file (file)
+          if (file.is_directory)
+            process_file(file)
+            if (file.is_empty) 
+              remove_dir(file)
+            end if
+          else
+          if (should_remove(file)) 
+            remove_file(file)
+          end if
+        end 
+        ```
+
+        ## Getting scrub.c 
+
+        You can get `scrub.c` from [the github repository](https://github.com/romanhargrave/scrub). I have pre-compiled
+        binaries for `x86_64`, `x86`, and a copy compiled against `musl-libc` for `x86_64`. 
+
+        Compiling is rather simple, considering that `scrub.c` has _no_ dependencies outside of a `libc` supporting
+        `unlink`, `rmdir`, `readdir`, `stat`, `closedir`, `basename`, and other familiar functions.
+
+        Simply run `gcc -o scrub scrub.c` and you are _good to go_.
+
+        ## Using scrub.c
+
+        Scrub can accept more than one file or directory as a paramater.
+        If passed a file, it will check if the file may be removed according to the specified parameters. If it may be
+        removed, `scrub` will unlink it.
+
+        The following options are accepted:
+
+        - -cext     --clobber-extension=ext 
+
+          This will remove all files with the given extension 
+
+        - -Cname    --clobber-name=name 
+        
+          This will remove all files with the given name 
+
+        - -H        --preserve-hidden
+
+          If specified, scrub will _not_ remove any _directories_ whose name starts with `.`
+
+        - --simulate
+
+          If specified, scrub will output actions but not take them. This will have an effect on 
+          whether a directory will be determined as empty or not, and is meant for debugging 
+          purposes.
+
+        - --verbose
+
+          Output every action that scrub takes 
+
+        An example invocation that removes all `nfo` files and files named `cover.jpg` would look like this:
+
+          scrub -cnfo -Ccover.jpg folder1/ folder2/
+
+        If `scrub` was able to remove everything up to, and including, those files and directories passed as arguments, 
+        it will return `0`. Otherwise, and appropriate status is returned.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
